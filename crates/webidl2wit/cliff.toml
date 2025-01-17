@@ -30,14 +30,14 @@ trim = true
 
 # regex for parsing and grouping commits
 commit_parsers = [
-  { message = "^feat", group = "<!-- 0 -->🚀 Features" },
-  { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
-  { message = "^doc", group = "<!-- 3 -->📚 Documentation" },
-  { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
-  { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
-  { message = "^style", group = "<!-- 5 -->🎨 Styling" },
-  { message = "^test", group = "<!-- 6 -->🧪 Testing" },
-  { message = "^chore\\(release\\): prepare for", skip = true },
+  { message = "^feat(cli)", group = "<!-- 0 -->🚀 Features" },
+  { message = "^fix(cli)", group = "<!-- 1 -->🐛 Bug Fixes" },
+  { message = "^doc(cli)", group = "<!-- 3 -->📚 Documentation" },
+  { message = "^perf(cli)", group = "<!-- 4 -->⚡ Performance" },
+  { message = "^refactor(cli)", group = "<!-- 2 -->🚜 Refactor" },
+  { message = "^style(cli)", group = "<!-- 5 -->🎨 Styling" },
+  { message = "^test(cli)", group = "<!-- 6 -->🧪 Testing" },
+  { message = "^release:", skip = true },
   { message = "^chore\\(deps.*\\)", skip = true },
   { message = "^chore\\(pr\\)", skip = true },
   { message = "^chore\\(pull\\)", skip = true },
@@ -48,16 +48,16 @@ commit_parsers = [
 ]
 
 # filter out the commits that are not matched by commit parsers
-filter_commits = false
+filter_commits = true
 
 # sort the tags topologically
 topo_order = false
 
 # sort the commits inside sections by oldest/newest order
-sort_commits = "oldest"
+sort_commits = "newest"
 
 # glob pattern for matching git tags
-tag_pattern = "v[0-9]*"
+tag_pattern = "webidlwit-v[0-9]*"
 
 # regex for skipping tags
 skip_tags = ".*beta.*"

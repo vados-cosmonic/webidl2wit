@@ -10,21 +10,6 @@ on:
       - "prep-release-v[0-9]+.[0-9]+.[0-9]+*"
       - "prep-release-v[0-9]+.[0-9]+.[0-9]+-*"
       - "feat(ops)=add-release-machinery" # TODO: REMOVE
-  workflow_dispatch:
-    inputs:
-      project:
-        description: Project to to prep for release (ex. `webidl2wit`)
-        required: true
-        default: "webidl2wit"
-        type: string
-        options:
-          - webidl2wit
-          - webidl2wit-cli
-
-      version:
-        description: Version to release (ex. `0.1.0`)
-        required: false
-        type: string
 
 jobs:
   build-bin:
@@ -94,7 +79,11 @@ jobs:
       # Generate a partial changelog
       - name: Generate current changelog
         run: |
-          git cliff --unreleased --github-token $GITHUB_TOKEN --tag=${{ steps.meta.outputs.version }} --prepend=CHANGELOG.current
+          git cliff \
+            --unreleased \
+            --github-token=$GITHUB_TOKEN \
+            --tag=${{steps.meta.outputs.project}}-${{ steps.meta.outputs.version }} \
+            --prepend=CHANGELOG.current
 
       # TODO: cargo release
 
