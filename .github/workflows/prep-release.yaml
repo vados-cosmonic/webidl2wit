@@ -8,14 +8,14 @@ on:
         description: Project to to prep for release (ex. `0.1.0`)
         required: true
         default: "webidl2wit"
-        type: string
+        type: choice
         options:
           - webidl2wit
           - webidl2wit-cli
 
       version:
-        description: Version to prep for release (ex. `0.1.0`)
-        required: false
+        description: Version to prep for release (ex. `0.1.0`, `0.1.0-rc.0`)
+        required: true
         type: string
 
 jobs:
@@ -31,18 +31,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Set up caching
+      # Set up Rust dependencies
       - uses: Swatinem/rust-cache@v2
-      - uses: chainguard-dev/actions/setup-gitsign@main
-      - name: Install cargo-release
-        uses: taiki-e/cache-cargo-install-action@v1
+      - name: Install cargo deps
+        uses: taiki-e/install-action@d125c0a83576d3c0c86ac610c708b38d3565af4e # v2.47.15
         with:
           tool: >-
-            cargo-release,
             just,
-            cargo-get,
-            cargo-edit,
             git-cliff
+      - uses: taiki-e/cache-cargo-install-action@v1
+        with:
+          tool: cargo-get
+      - uses: taiki-e/cache-cargo-install-action@v1
+        with:
+          tool: cargo-edit
 
       - name: Gather metadata
         id: meta
@@ -51,7 +53,7 @@ jobs:
           VERSION: ${{ inputs.version }}
           PROJECT: ${{ inputs.project }}
         run: |
-          export PROJECT=$($PROJECT || echo "webidl")
+          export PROJECT=$(echo $PROJECT || echo "webidl")
           cd crates/$PROJECT
           export VERSION=$(cargo get package.version --terminator Nul)
 
@@ -60,11 +62,15 @@ jobs:
 
       - name: Generate changelog
         env:
-          VERSION: ${{ steps.detect-version.outputs.value }}
+          VERSION: ${{ steps.meta.outputs.value }}
+        working-directory: crates/${{ steps.meta.outputs.project }}
         run: |
-          cd crates/${{ steps.meta.outputs.project }}
           cargo set-version ${{ steps.meta.outputs.version }}
-          git cliff --unreleased --tag={{version}} --prepend=crates/${{ steps.meta.outputs.project }}/CHANGELOG
+          git cliff \
+            --repository=../../.git \
+            --unreleased \
+            --tag={{version}} \
+            --prepend=CHANGELOG.md
 
       # Create PR for release
       - uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6
