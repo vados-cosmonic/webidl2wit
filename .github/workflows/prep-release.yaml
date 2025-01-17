@@ -1,8 +1,7 @@
 name: create-release-pr
+run-name: create-release-pr
 
 on:
-  push:
-    - "feat(ops)=add-release-machinery" # TODO: REMOVE
   workflow_dispatch:
     inputs:
       project:
