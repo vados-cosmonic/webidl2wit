@@ -1,0 +1,96 @@
+name: create-release-pr
+
+on:
+  push:
+    - "feat(ops)=add-release-machinery" # TODO: REMOVE
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Project to to prep for release (ex. `0.1.0`)
+        required: true
+        default: "webidl2wit"
+        type: string
+        options:
+          - webidl2wit
+          - webidl2wit-cli
+
+      version:
+        description: Version to prep for release (ex. `0.1.0`)
+        required: false
+        type: string
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: write
+    steps:
+      # Checkout the full repository history
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up caching
+      - uses: Swatinem/rust-cache@v2
+      - uses: chainguard-dev/actions/setup-gitsign@main
+      - name: Install cargo-release
+        uses: taiki-e/cache-cargo-install-action@v1
+        with:
+          tool: >-
+            cargo-release,
+            just,
+            cargo-get,
+            cargo-edit,
+            git-cliff
+
+      - name: Gather metadata
+        id: meta
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+          PROJECT: ${{ inputs.project }}
+        run: |
+          export PROJECT=$($PROJECT || echo "webidl")
+          cd crates/$PROJECT
+          export VERSION=$(cargo get package.version --terminator Nul)
+
+          echo -e "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo -e "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        env:
+          VERSION: ${{ steps.detect-version.outputs.value }}
+        run: |
+          cd crates/${{ steps.meta.outputs.project }}
+          cargo set-version ${{ steps.meta.outputs.version }}
+          git cliff --unreleased --tag={{version}} --prepend=crates/${{ steps.meta.outputs.project }}/CHANGELOG
+
+      # Create PR for release
+      - uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6
+        with:
+          # TODO: we need this PAT to ensure that actions are kicked off
+          # GH will not kick off actions for GITHUB_TOKEN
+          #
+          # token: ${{ secrets.RELEASE_PR_PAT }}
+          branch: prep-release-${{ steps.meta.outputs.project}}-v${{ steps.meta.outputs.version }}
+          commit-message: |
+            release: ${{ steps.meta.outputs.project }} v${{ steps.meta.outputs.version }}
+          title: |
+            release: ${{ steps.meta.outputs.project }} v${{ steps.meta.outputs.version }}
+          labels: |
+            release-pr
+          assignees: |
+            MendyBerger
+          signoff: true
+          body: |
+            This is a release prep branch for `${{ steps.meta.outputs.project }}` release v${{ steps.meta.outputs.version }}.
+
+            Upon merging, this branch will cause a tag to be placed on the commit in `main`. After the tag has been placed, a build will run that generates artifacts and publishes a release.
+
+            Before this release is ready, please do the following:
+              - [ ] Generate and test artifacts
+              - [ ] Review the updated CHANGELOG(s)
+
+            See CHANGELOG for changes made to this release before it goes out.
