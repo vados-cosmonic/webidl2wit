@@ -108,6 +108,7 @@ jobs:
         working-directory: crates/${{ needs.meta.outputs.project }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
           export TAG=${{ needs.meta.outputs.project }}-${{ needs.meta.outputs.version }}
           git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
@@ -175,6 +176,7 @@ jobs:
         working-directory: crates/${{ needs.meta.outputs.project }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
           export TAG=${{ needs.meta.outputs.project }}-${{ needs.meta.outputs.version }}
           git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
