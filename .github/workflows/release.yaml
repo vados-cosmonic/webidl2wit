@@ -91,6 +91,7 @@ jobs:
     if: ${{ inputs.project == 'webidl2wit' }}
     runs-on: ubuntu-latest
     needs:
+      - meta
       - release-crate
     steps:
       # Checkout the repository
@@ -125,6 +126,7 @@ jobs:
     if: ${{ inputs.project == 'webidl2wit-cli' }}
     runs-on: ubuntu-latest
     needs:
+      - meta
       - release-crate
     strategy:
       matrix:
@@ -154,7 +156,7 @@ jobs:
     if: ${{ inputs.project == 'webidl2wit-cli' }}
     runs-on: ubuntu-latest
     needs:
-      - release-crate
+      - gh-release-build-cli
     strategy:
       matrix:
         platform:
