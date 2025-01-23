@@ -20,7 +20,7 @@ on:
         required: true
         default: "webidl2wit"
         description: |
-          Project to to prep for release (ex. `0.1.0`)
+          Project to release via tag
         options:
           - webidl2wit
           - webidl2wit-cli
@@ -29,13 +29,8 @@ on:
         type: string
         required: true
         description: |
-          Version tag (e.x. `v0.1.0`)
+          Versoin tag to release (e.x. `0.1.0`, `0.2.0`)
 
-      ref:
-        type: string
-        required: true
-        description: |
-          Repository ref to tag (e.x. 'branch', 'webidl2wit-v0.1.0', '<long SHA>')
 
 jobs:
   build-cli:
@@ -95,7 +90,7 @@ jobs:
             if (context.ref.startsWith('refs/tags')) {
               match = tag.replace(/^refs\/tags\//, '').match(/^(.*)-v(\d+\.\d+\.\d+)$/);
             } else if (context.ref.startsWith('refs/heads')) {
-              match = tag.replace(/^refs\/heads\//, '').match(/^release-(.+)-v(\d+\.\d+\.\d+)$/);
+              match = tag.replace(/^refs\/heads\//, '').match(/^prep-release-(.+)-v(\d+\.\d+\.\d+)$/);
              } else {
                throw new Error(`Unexpected context ref [${context.ref}]`);
              }
