@@ -50,30 +50,37 @@ jobs:
         id: meta
         shell: bash
         env:
-          VERSION: ${{ inputs.version }}
+          NEXT_VERSION: ${{ inputs.version }}
           PROJECT: ${{ inputs.project }}
         run: |
+          if [[ $NEXT_VERSION == v* ]]; then
+            echo "::error::next version [$NEXT_VERSION] starts with 'v' -- enter only the semver version (ex. '0.1.0', not 'v0.1.0')";
+            exit 1;
+          fi
           export PROJECT=$(echo $PROJECT || echo "webidl")
           cd crates/$PROJECT
-          export VERSION=$(cargo get package.version --terminator Nul)
+          export CURRENT_VERSION=$(cargo get package.version --terminator Nul)
 
           echo -e "project=$PROJECT" >> $GITHUB_OUTPUT
-          echo -e "version=$VERSION" >> $GITHUB_OUTPUT
+          echo -e "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo -e "next-version=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog
-        env:
-          VERSION: ${{ steps.meta.outputs.value }}
+      - name: Update crate version
         working-directory: crates/${{ steps.meta.outputs.project }}
         run: |
-          cargo set-version ${{ steps.meta.outputs.version }}
+          cargo set-version ${{ steps.meta.outputs.next-version }}
+
+      - name: Generate changelog
+        working-directory: crates/${{ steps.meta.outputs.project }}
+        run: |
           git cliff \
             --repository=../../.git \
             --unreleased \
             --tag=${{ steps.meta.outputs.project }}-${{ steps.meta.outputs.version }} \
             --prepend=CHANGELOG.md
 
-      # Create PR for release
-      - uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6
+      - name: Create release prep PR
+        uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6
         with:
           branch: prep-release-${{ steps.meta.outputs.project}}-v${{ steps.meta.outputs.version }}
           commit-message: |
