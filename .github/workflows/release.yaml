@@ -114,7 +114,7 @@ jobs:
     if: ${{ inputs.project == 'webidl2wit-cli' }}
     runs-on: ubuntu-latest
     needs:
-      - meta
+      - release-crate
     strategy:
       matrix:
         platform:
