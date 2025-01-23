@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [webidl2wit-cli-0.1.0-rc.0] - 2025-01-23
+
+### ⚙️ Miscellaneous Tasks
+
+* add rust toolchain config by @vados-cosmonic
+
+
+
+## New Contributors
+* @vados-cosmonic made their first contribution
+* @MendyBerger made their first contribution
+* @guybedford made their first contribution## [unreleased]
 
 ### 💼 Other
 
